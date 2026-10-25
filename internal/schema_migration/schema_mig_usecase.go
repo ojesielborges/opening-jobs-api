@@ -18,7 +18,6 @@ func NewSchemaMigrationUseCase(storage *SchemaMigrationStorage) *SchemaMigration
 	}
 }
 
-// Apply all pending migrations
 func (useCase *SchemaMigrationUseCase) RunUp(migrationsPath string) error {
 	pathFile := filepath.Join(migrationsPath, "/*_up.sql")
 	files, _ := filepath.Glob(pathFile)
@@ -45,7 +44,6 @@ func (useCase *SchemaMigrationUseCase) RunUp(migrationsPath string) error {
 	return nil
 }
 
-// Revert the last applied migration
 func (useCase *SchemaMigrationUseCase) RunDown(migrationsPath string) error {
 	pathFile := filepath.Join(migrationsPath, "/*_down.sql")
 	files, _ := filepath.Glob(pathFile)
@@ -67,14 +65,13 @@ func (useCase *SchemaMigrationUseCase) RunDown(migrationsPath string) error {
 				return err
 			}
 			fmt.Printf("↩️  Migração revertida: %s\n", upFile)
-			return nil // reverte apenas uma por vez
+			return nil
 		}
 	}
 	fmt.Println("Nenhuma migração para reverter.")
 	return nil
 }
 
-// Show the status of all migrations
 func (useCase *SchemaMigrationUseCase) RunStatus(migrationsPath string) error {
 	pathFile := filepath.Join(migrationsPath, "/*_up.sql")
 	files, _ := filepath.Glob(pathFile)
@@ -95,7 +92,6 @@ func (useCase *SchemaMigrationUseCase) RunStatus(migrationsPath string) error {
 	return nil
 }
 
-// Run a single SQL file
 func (useCase *SchemaMigrationUseCase) runSQL(filename string) error {
 	content, err := os.ReadFile(filename)
 	if err != nil {
@@ -106,17 +102,14 @@ func (useCase *SchemaMigrationUseCase) runSQL(filename string) error {
 	return err
 }
 
-// Get a map of applied migrations
 func (useCase *SchemaMigrationUseCase) AppliedMigrations() (map[string]bool, error) {
 	return useCase.storage.appliedMigrations()
 }
 
-// Mark a migration as applied
 func (useCase *SchemaMigrationUseCase) MarkMigrationApplied(filename string) error {
 	return useCase.storage.markMigrationApplied(filename)
 }
 
-// Unmark a migration as applied
 func (useCase *SchemaMigrationUseCase) UnmarkMigration(filename string) error {
 	return useCase.storage.unmarkMigration(filename)
 }

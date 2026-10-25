@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
@@ -18,7 +19,6 @@ var (
 func Init() error {
 	var err error
 
-	// Initialize environment variables from .env file
 	_ = godotenv.Load()
 
 	db, err = InitializeDB()
@@ -52,4 +52,17 @@ func GetEnv(key, defaultValue string) string {
 	}
 
 	return defaultValue
+}
+
+func GetDuration(key string, defaultValue time.Duration) (time.Duration, error) {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue, nil
+	}
+
+	duration, err := time.ParseDuration(value)
+	if err != nil || duration <= 0 {
+		return 0, fmt.Errorf("%s must be a positive duration: %q", key, value)
+	}
+	return duration, nil
 }
