@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 
-	"openingjobs/internal/opening/domain"
+	"openingjobs/internal/business/opening/domain"
 
 	"github.com/google/uuid"
 )

@@ -1,6 +1,6 @@
 package v1
 
-import "openingjobs/internal/opening/domain"
+import "openingjobs/internal/business/opening/domain"
 
 type openingRequest struct {
 	Role     string `json:"role" binding:"required,max=200"`

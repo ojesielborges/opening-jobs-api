@@ -1,9 +1,9 @@
 package opening
 
 import (
-	openingapp "openingjobs/internal/opening/application"
-	openingpostgres "openingjobs/internal/opening/infrastructure/postgres"
-	openinghttpv1 "openingjobs/internal/opening/transport/http/v1"
+	openingapp "openingjobs/internal/business/opening/application"
+	openingpostgres "openingjobs/internal/business/opening/infrastructure/postgres"
+	openinghttpv1 "openingjobs/internal/business/opening/transport/http/v1"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"

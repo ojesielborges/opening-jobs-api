@@ -1,6 +1,6 @@
 package v1
 
-import "openingjobs/internal/opening/domain"
+import "openingjobs/internal/business/opening/domain"
 
 type openingResponse struct {
 	ID       string `json:"id"`

@@ -1,6 +1,6 @@
 # Arquitetura
 
-Cada domínio vive em `internal/<dominio>` e é organizado por responsabilidade:
+Os domínios de negócio vivem em `internal/business/<dominio>` e são organizados por responsabilidade:
 
 - `domain`: entidades, validações e contratos; não importa HTTP, SQL ou Gin.
 - `application`: casos de uso; recebe e repassa `context.Context`.
@@ -8,7 +8,9 @@ Cada domínio vive em `internal/<dominio>` e é organizado por responsabilidade:
 - `transport`: adaptadores de entrada, como HTTP; converte request/response e não contém regra de negócio.
 - `module.go`: ponto de composição do domínio. O `cmd/api` apenas configura dependências globais e monta módulos.
 
-Para adicionar um domínio, replique essa estrutura e exponha somente o método de montagem no `module.go`. Domínios não devem importar a infraestrutura ou o transporte de outros domínios; colaboração entre eles deve ocorrer por contratos definidos na camada de aplicação.
+`internal/controlplane` reúne capacidades administrativas e de configuração da aplicação, como tenants. `internal/operations` contém ferramentas operacionais, como migrations. `internal/bootstrap` inicializa configurações e dependências compartilhadas. `internal/platform` contém adaptadores técnicos reutilizáveis, como HTTP e PostgreSQL.
+
+Para adicionar um domínio de negócio, replique a estrutura em `internal/business` e exponha somente o método de montagem no `module.go`. Domínios não devem importar a infraestrutura ou o transporte de outros domínios; colaboração entre eles deve ocorrer por contratos definidos na camada de aplicação.
 
 ## Contexto, timeout e autorização
 
@@ -20,4 +22,4 @@ Autorização deve ser middleware, aplicada no grupo de rotas que requer a polí
 
 As rotas da API exigem `X-Tenant` e `X-Tenant-Key`. A chave nunca é armazenada em texto puro: o registry central `control.tenants` guarda somente seu SHA-256. O middleware resolve o tenant e os repositórios executam cada operação em uma transação com `SET LOCAL search_path`; assim uma conexão do pool não pode reutilizar o schema de outro tenant.
 
-Para criar o primeiro tenant (ou rotacionar sua chave), defina `TENANT_SLUG`, `TENANT_API_KEY` com ao menos 32 caracteres e `MIGRATIONS_PATH`, então execute `go run ./cmd/tenant`. O comando cria `tenant_<slug>`, registra a credencial e aplica todas as migrações `*_up.sql` ainda pendentes naquele schema.
+Para criar um tenant, execute `go run ./cmd/tenant --slug acme`. O comando cria `tenant_<slug>`, gera e exibe uma chave de API segura e registra somente o hash da chave; não executa migrations. Para definir uma chave específica, use `--api-key`; as variáveis `TENANT_SLUG` e `TENANT_API_KEY` também continuam aceitas como alternativa. Execute as migrations manualmente com `go run ./cmd/migration --tenant acme`.

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"openingjobs/internal/tenant"
+	"openingjobs/internal/controlplane/tenant"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"

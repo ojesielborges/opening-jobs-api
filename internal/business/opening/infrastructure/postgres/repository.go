@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"openingjobs/internal/opening/domain"
+	"openingjobs/internal/business/opening/domain"
 	platformpostgres "openingjobs/internal/platform/postgres"
 
 	"github.com/google/uuid"

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"openingjobs/pkg/response"
+	"openingjobs/internal/platform/http/response"
 
 	"github.com/gin-gonic/gin"
 )

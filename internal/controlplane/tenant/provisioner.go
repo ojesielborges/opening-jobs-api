@@ -5,10 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"os"
-	"path/filepath"
-	"sort"
-	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -18,7 +14,7 @@ type Provisioner struct{ db *sqlx.DB }
 
 func NewProvisioner(db *sqlx.DB) *Provisioner { return &Provisioner{db: db} }
 
-func (p *Provisioner) Provision(ctx context.Context, slug, apiKey, migrationsPath string) error {
+func (p *Provisioner) Provision(ctx context.Context, slug, apiKey string) error {
 	if len(apiKey) < 32 {
 		return fmt.Errorf("tenant API key must contain at least 32 characters")
 	}
@@ -26,15 +22,6 @@ func (p *Provisioner) Provision(ctx context.Context, slug, apiKey, migrationsPat
 	if err != nil {
 		return err
 	}
-	files, err := filepath.Glob(filepath.Join(migrationsPath, "*_up.sql"))
-	if err != nil {
-		return fmt.Errorf("list tenant migrations: %w", err)
-	}
-	sort.Strings(files)
-	if len(files) == 0 {
-		return fmt.Errorf("no tenant migrations found in %q", migrationsPath)
-	}
-
 	tx, err := p.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("begin tenant provisioning: %w", err)
@@ -74,30 +61,6 @@ func (p *Provisioner) Provision(ctx context.Context, slug, apiKey, migrationsPat
 		return fmt.Errorf("create tenant migration registry: %w", err)
 	}
 
-	var applied []string
-	if err := tx.SelectContext(ctx, &applied, `SELECT filename FROM schema_migrations`); err != nil {
-		return fmt.Errorf("read tenant migrations: %w", err)
-	}
-	done := make(map[string]struct{}, len(applied))
-	for _, name := range applied {
-		done[name] = struct{}{}
-	}
-	for _, file := range files {
-		name := filepath.Base(file)
-		if _, ok := done[name]; ok {
-			continue
-		}
-		content, err := os.ReadFile(file)
-		if err != nil {
-			return fmt.Errorf("read migration %s: %w", name, err)
-		}
-		if _, err := tx.ExecContext(ctx, strings.TrimSpace(string(content))); err != nil {
-			return fmt.Errorf("apply tenant migration %s: %w", name, err)
-		}
-		if _, err := tx.ExecContext(ctx, `INSERT INTO schema_migrations (filename) VALUES ($1)`, name); err != nil {
-			return fmt.Errorf("record tenant migration %s: %w", name, err)
-		}
-	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("commit tenant provisioning: %w", err)
 	}

@@ -5,9 +5,9 @@ import (
 	"errors"
 	"net/http"
 
-	"openingjobs/internal/opening/domain"
+	"openingjobs/internal/business/opening/domain"
 	httperrors "openingjobs/internal/platform/http/errors"
-	"openingjobs/pkg/response"
+	"openingjobs/internal/platform/http/response"
 
 	"github.com/gin-gonic/gin"
 )

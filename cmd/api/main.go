@@ -9,11 +9,12 @@ import (
 	"syscall"
 	"time"
 
-	"openingjobs/internal/opening"
+	"openingjobs/internal/bootstrap/config"
+	"openingjobs/internal/business/opening"
+	"openingjobs/internal/controlplane/tenant"
+	tenantpostgres "openingjobs/internal/controlplane/tenant/infrastructure/postgres"
+	tenanthttp "openingjobs/internal/controlplane/tenant/transport/http"
 	"openingjobs/internal/platform/http/middleware"
-	tenantpostgres "openingjobs/internal/tenant/infrastructure/postgres"
-	tenanthttp "openingjobs/internal/tenant/transport/http"
-	"openingjobs/pkg/config"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,6 +33,16 @@ func main() {
 		logger.Errorf("invalid HTTP request timeout: %v", err)
 		return
 	}
+	tenantCacheTTL, err := config.GetDuration("TENANT_CACHE_TTL", 5*time.Minute)
+	if err != nil {
+		logger.Errorf("invalid tenant cache TTL: %v", err)
+		return
+	}
+	tenantNegativeCacheTTL, err := config.GetDuration("TENANT_NEGATIVE_CACHE_TTL", 15*time.Second)
+	if err != nil {
+		logger.Errorf("invalid tenant negative cache TTL: %v", err)
+		return
+	}
 
 	router := gin.New()
 	if err := router.SetTrustedProxies(nil); err != nil {
@@ -46,7 +57,12 @@ func main() {
 		c.Next()
 	})
 
-	tenants := tenantpostgres.NewRepository(config.GetDB())
+	tenants := tenant.NewCachedResolver(
+		tenantpostgres.NewRepository(config.GetDB()),
+		tenantCacheTTL,
+		tenantNegativeCacheTTL,
+	)
+
 	api := router.Group("/api/v1")
 	api.Use(tenanthttp.RequireTenant(tenants))
 	opening.MountHTTPV1(api, config.GetDB())

@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 
-	"openingjobs/internal/tenant"
+	"openingjobs/internal/controlplane/tenant"
 
 	"github.com/jmoiron/sqlx"
 )

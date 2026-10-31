@@ -3,8 +3,8 @@ package http
 import (
 	"net/http"
 
-	"openingjobs/internal/tenant"
-	"openingjobs/pkg/response"
+	"openingjobs/internal/controlplane/tenant"
+	"openingjobs/internal/platform/http/response"
 
 	"github.com/gin-gonic/gin"
 )
